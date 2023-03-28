@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="7c84b520-4a7f-4911-842d-87199bf71ebc" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="c033a289-4d8d-4191-a3e1-b6d8d4397794" basePath="/rest" >
+		<http:request-connection host="localhost" port="7070" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="58ddc484-d4f8-4ae8-bf7f-2a4f9e12c8be" basePath="/rest" >
+		<http:request-connection host="localhost" port="7070" />
+	</http:request-config>
+	<flow name="rest-getallproducts" doc:id="b1fa0321-4545-43b9-bd46-9ebaeb15128e" >
+		<http:request method="GET" doc:name="Request" doc:id="9666710a-bb88-4dac-99f9-154c7d6d4524" path="/products" config-ref="HTTP_Request_configuration"/>
+	</flow>
+	<flow name="getproductsbyname" doc:id="a2d60b0c-1fc9-46d7-9287-30b9686a9e5b" >
+		<http:request method="GET" doc:name="Request" doc:id="3ef30c75-8629-4a63-a8db-70b8af0a2487" config-ref="HTTP_Request_configuration1" path="/products/{pname}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	pname : vars.pname
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+	<flow name="mainflow" doc:id="69c0a4b6-9562-49e9-a5a6-592111ad071d" >
+		<http:listener doc:name="Listener" doc:id="4999b30d-26b8-4a4c-9b0f-ee77e915ee4d" config-ref="HTTP_Listener_config" path="/products"/>
+		<choice doc:name="Choice" doc:id="42d673f7-4c2f-4eea-816e-89d0aa5fd423" >
+			<when expression="#[attributes.method == 'GET' and attributes.queryParams.productname == null]">
+				<flow-ref doc:name="Flow Reference" doc:id="06ad9e5e-0d5a-494b-b905-5bf5facf2a0e" name="rest-getallproducts"/>
+			</when>
+			<when expression="#[attributes.method == 'GET' and attributes.queryParams.productname != null]">
+				<set-variable value="#[attributes.queryParams.productname]" doc:name="Set Variable" doc:id="ebf0b203-809d-4d4d-ae14-ddcd11ea9e17" variableName="pname"/>
+				<flow-ref doc:name="Flow Reference" doc:id="553f416d-67da-444b-9858-58351f02383a" name="getproductsbyname"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="9b52cfd1-2a64-4f58-b75c-d20e84366910" message="Invalid request"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

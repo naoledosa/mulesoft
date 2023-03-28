@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d0ab724e-667d-4989-8c25-d08016f13bd1" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="ffc9f171-bf2f-4db0-8444-9260f791635c" >
+		<db:my-sql-connection host="localhost" port="3307" user="root" password="root" database="muletrainingdb" />
+	</db:config>
+	<flow name="databaseendpointFlow" doc:id="0dbde312-442c-4220-9bf9-b3ab38059839" >
+		<http:listener doc:name="Listener" doc:id="bcbe2c0e-806f-47c3-827f-82ef4b324f85" config-ref="HTTP_Listener_config" path="/db"/>
+		<choice doc:name="Choice" doc:id="5943713c-0964-42bb-aeac-79c4572495d9" >
+			<when expression="#[not isEmpty(attributes.queryParams.brandname)]">
+				<db:select doc:name="Select" doc:id="a8bab983-6e6d-48d9-bdbf-dae30c95f642" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from product where brand_name=:brandname]]></db:sql>
+			<db:input-parameters><![CDATA[#[brandname: attributes.queryParams.brandname as String]]]></db:input-parameters>
+		</db:select>
+			</when>
+			<otherwise>
+				<db:select doc:name="Select" doc:id="f3cdc4f8-e634-4194-9a08-954d51d492e8" config-ref="Database_Config">
+					<db:sql ><![CDATA[select * from product]]></db:sql>
+				</db:select>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="71113de7-0a6f-477e-a553-e65e946c7171" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	product_id: payload.product_id,
+	brand_name: payload.brand_name,
+	description: payload.description,
+	name: payload.name,
+	offer_price: payload.offer_price,
+	offer_valid_until: payload.offer_valid_until,
+	original_price: payload.original_price
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="75b18a3e-3a4b-4c50-91e4-624e44c8f8aa" message="#[payload]"/>
+	</flow>
+</mule>

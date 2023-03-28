@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="54a3ebd9-02e1-40d0-b132-822cc66b0046" >
+		<db:my-sql-connection host="localhost" port="3307" user="root" password="root" database="muletrainingdb" />
+	</db:config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="ecc282d3-fe27-428f-a0e2-87ef2dbc6d0c" >
+		<file:connection workingDir="C:\Users\naole\Desktop\MuleSoft\Exercises\files" />
+	</file:config>
+	<flow name="watermarkingFlow" doc:id="220c3007-cc8d-4151-a318-5ca491636ac7" >
+		<db:listener doc:name="On Table Row" doc:id="47ad5eaa-efe3-42bb-8915-e6c69902dbb0" config-ref="Database_Config" table="product" watermarkColumn="product_id">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</db:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="e867c402-1262-489d-87c6-fa03befce533" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="be35d346-d227-4055-9439-f22531db389d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv header=false
+---
+[payload]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="76624135-5e52-4bd4-a4a6-2cd9be6ad793" config-ref="File_Config" path="C:\Users\naole\Desktop\MuleSoft\Exercises\files\output\products.csv" mode="APPEND"/>
+	</flow>
+</mule>

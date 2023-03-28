@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="transformtojavaFlow" doc:id="bba6661f-643f-49a8-8cfa-8a413ae4e7e0" >
+		<http:listener doc:name="Listener" doc:id="f99d72a4-1a72-46fb-897a-e5d44d019580" config-ref="HTTP_Listener_config" path="/transformjava"/>
+		<ee:transform doc:name="Transform Message" doc:id="7b9f4064-ffce-46d5-be78-060cd0aa76bd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload.products.*product map {
+	productId: $.productId as Number,
+	productName: $.name,
+	brandName: $.brandName,
+	offer:{
+	offerPrice:$.offer.offerPrice as Number,
+	offerValidUntil:$.offer.offerValidUntil as Date {format:"yyyy-MM-dd"}			
+	} as Object {class:"com.way2learnonline.Offer"}
+	,
+	images: $.images.*image,
+	originalPrice: $.originalPrice
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="1d5976bb-f92d-426f-813a-33217abf2be6" />
+	</flow>
+</mule>

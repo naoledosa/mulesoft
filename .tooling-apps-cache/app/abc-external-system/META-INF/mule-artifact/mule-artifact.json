@@ -1,0 +1,37 @@
+{
+  "configs": [
+    "global/configElement.xml",
+    "implementation/get-schedules-impl.xml",
+    "implementation/get-routes-impl.xml",
+    "global/abc-external-system.xml"
+  ],
+  "secureProperties": [],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:abc-external-system:1.0.0-SNAPSHOT",
+  "minMuleVersion": "4.4.0",
+  "requiredProduct": "MULE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "application-types.xml",
+        "config/dev.yaml",
+        "config/local.yaml",
+        "config/ppe.yaml",
+        "config/prd.yaml",
+        "config/sit.yaml",
+        "config/uat.yaml",
+        "global/abc-external-system.xml",
+        "global/configElement.xml",
+        "implementation/get-routes-impl.xml",
+        "implementation/get-schedules-impl.xml",
+        "log4j2.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

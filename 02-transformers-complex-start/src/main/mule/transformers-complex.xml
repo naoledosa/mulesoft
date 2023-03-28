@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="b93ed59d-76b9-4fc2-91eb-a34a5dfe482c">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+	</http:listener-config>
+
+
+	<flow name="getconversionrateflow"
+		doc:id="1f566c1b-d331-44d8-ae1a-59b7cf04dea0">
+		<choice doc:name="Choice"
+			doc:id="08fd6eed-06e9-4ad1-967d-c01576094a30">
+			<when expression="#[payload=='us']">
+				<set-payload value="#[65 as Number]" doc:name="USD"
+					doc:id="835fe3f8-6ef4-43da-81d3-b331a8deb6bf" />
+			</when>
+			<when expression="#[payload=='uk']">
+				<set-payload value="#[75 as Number]" doc:name="Euro"
+					doc:id="dab3ce2d-8354-44ac-bcd6-a13e5e35cfa8" />
+			</when>
+			<otherwise>
+				<set-payload value="#[1 as Number]" doc:name="Rupee"
+					doc:id="805e6d94-9771-4bc4-8d35-56cbb38427f8" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="transformers-complexFlow"
+		doc:id="1296d98d-42da-4141-ad1d-ce1535784a77">
+		<http:listener doc:name="Listener"
+			doc:id="764b8d45-e3cd-4ebc-a0e7-7cc6f9eae9a8"
+			config-ref="HTTP_Listener_config" path="/transformjson" outputMimeType="application/json"/>
+		<ee:transform doc:name="Transform Message"
+			doc:id="6eb0f7e8-117d-4e30-a768-86ee12e95fd3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+
+var conversionRate = lookup('getconversionrateflow',attributes.queryParams.country)
+
+var getConvertedPrice= (price)-> price*conversionRate
+
+var products = payload map
+(product,productIndex)-> {
+	product: {
+		productId: product.productId,
+		name: product.name,
+		brandName: product.brandName,
+		originalPrice: getConvertedPrice(product.originalPrice)
+	}
+}
+
+
+var sortedProducts= products orderBy -$.product.originalPrice
+
+var filteredProduct = products filter $.product.brandName == attributes.queryParams.brandName
+
+---
+products: {
+	(products)
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="products" ><![CDATA[%dw 2.0
+output application/xml
+
+var products = payload map {
+	'product':{
+	productId:$.productId,
+	name:$.name,
+	brandName:$.brandName,
+	originalPrice:$.originalPrice
+	
+	}
+}
+
+var sortedProducts= products orderBy -$.product.originalPrice
+
+var filteredProduct = products filter $.product.brandName == attributes.queryParams.brandName
+var object1 = {
+	one:"1",
+	two:true
+}
+
+var object2 = [
+	one:1, two:2, three:3, four:4,five:5
+]
+---
+products: {
+	(filteredProduct)
+}]]></ee:set-variable>
+				<ee:set-variable variableName="object1" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+				<ee:set-variable variableName="object2" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="4b3ba540-649a-4b66-9fc0-92c17ac75890" />
+	</flow>
+</mule>

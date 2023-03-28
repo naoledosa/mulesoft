@@ -1,0 +1,73 @@
+#%RAML 1.0
+title: ACME Banking API
+mediaType: application/json
+
+documentation:
+  - !include documentation/acmeBankHeadline.raml
+  - !include documentation/acmeBankDoc.raml
+
+types:
+  Customer: !include /exchange_modules/b39e880b-73c1-42f3-a9d5-89b531fb872b/banking-data-types/1.0.0/datatypes/Customer.raml
+  Account: !include /exchange_modules/b39e880b-73c1-42f3-a9d5-89b531fb872b/banking-data-types/1.0.0/datatypes/Account.raml
+  AccountOwner: !include /exchange_modules/b39e880b-73c1-42f3-a9d5-89b531fb872b/banking-data-types/1.0.0/datatypes/AccountOwner.raml
+  Address: !include /exchange_modules/b39e880b-73c1-42f3-a9d5-89b531fb872b/banking-data-types/1.0.0/datatypes/Address.raml
+  Bank: !include /exchange_modules/b39e880b-73c1-42f3-a9d5-89b531fb872b/banking-data-types/1.0.0/datatypes/Bank.raml
+  Money: !include /exchange_modules/b39e880b-73c1-42f3-a9d5-89b531fb872b/banking-data-types/1.0.0/datatypes/Money.raml
+  Transaction: !include /exchange_modules/b39e880b-73c1-42f3-a9d5-89b531fb872b/banking-data-types/1.0.0/datatypes/Transaction.raml
+  CustomErrorMessage: !include datatypes/CustomErrorMessage.raml
+
+resourceTypes:
+   collection: !include resourceTypes/collection.raml
+   member: !include resourceTypes/member.raml
+
+traits:
+  cacheable: !include /exchange_modules/68ef9520-24e9-4cf2-b2f5-620025690913/training-cacheable-trait/1.0.1/Cacheable.raml
+
+/customers:
+  get:
+  description: Retrieve a list of customers
+  displayName: Get all Customers
+  is:
+    - cacheable
+  
+  type: collection
+  post:
+  /{customer_id}:
+    type: member
+    get:
+    patch:
+    delete:
+    /accounts:
+      get:
+        responses: 
+          200:
+            body:
+              type: Account[]
+          404:
+            body:
+              type: CustomErrorMessage
+
+/accounts:
+  type: collection
+  post:
+  /{account_id}:
+    type: member
+    get:
+    put:
+    delete:
+    /transactions:
+      get:
+        responses: 
+          200:
+            body:
+              type: Transaction[]
+          404:
+            body:
+              type: CustomErrorMessage
+
+/transactions:
+  type: collection
+  post:
+  /{transaction_id}:
+    type: member
+    get:

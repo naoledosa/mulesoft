@@ -1,0 +1,5 @@
+db: 
+   host: "localhost"
+   user: "root"
+   password: "Kenate@mom123"
+   port: "3307"

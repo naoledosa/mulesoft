@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="14587d22-a7c6-4f5a-a4ef-918ae011c3f5" >
+		<file:connection workingDir="C:\Users\naole\Desktop\MuleSoft\Exercises\files" />
+	</file:config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="5958d5e1-8e02-4108-8d5e-bbfe1f07a5b5" >
+		<db:my-sql-connection host="localhost" port="3307" user="root" password="root" database="muletrainingdb" />
+	</db:config>
+	<flow name="batchFlow" doc:id="baf04035-04b3-4821-ae8f-c54fb13dd754" >
+		<file:listener doc:name="On New or Updated File" doc:id="c2bd04f7-0677-4fda-b7be-e771c60455b0" config-ref="File_Config" directory="C:\Users\naole\Desktop\MuleSoft\Exercises\files\input">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</file:listener>
+		<ee:transform doc:name="Transform Message" doc:id="63295d3b-eec8-4f6e-b64a-62bac2e4706f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[sizeOf(payload)]" doc:name="size" doc:id="13cc2580-16f0-4ed6-bdf1-e236a6fce6df" variableName="size"/>
+		<batch:job jobName="batchBatch_Job" doc:id="00d52c9a-e526-453b-9320-4091d646a737" >
+			<batch:process-records >
+				<batch:step name="Step1" doc:id="a3af5af4-9132-449e-a9eb-14b70b321ac7" >
+					<ee:transform doc:name="Transform Message" doc:id="7f4adf5e-76e0-4a79-8043-02f57f74921d" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="name" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.Name as String]]></ee:set-variable>
+							<ee:set-variable variableName="city" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.City as String]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+					<db:select doc:name="Select" doc:id="70c1ad6e-b402-42d5-b0a5-3de5395ac98f" config-ref="Database_Config" target="isPresent" targetValue="#[sizeOf(payload)&gt;0]" queryTimeoutUnit="NANOSECONDS">
+						<db:sql ><![CDATA[select * from sales where Name=:myname and City=:mycity]]></db:sql>
+						<db:input-parameters ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	mycity: vars.city,
+	myname: vars.name
+}]]]></db:input-parameters>
+					</db:select>
+				</batch:step>
+				<batch:step name="step2" doc:id="60777b42-66f4-4eba-98f6-2d6b3882a74d" acceptExpression="#[not vars.isPresent]">
+					<logger level="INFO" doc:name="Logger" doc:id="5f124359-87fd-414f-93a1-4efe99d0492b" message="#[payload]"/>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="5c50772a-a490-4415-bfbd-b69b4167eae1" size="50">
+						<logger level="INFO" doc:name="Logger" doc:id="8d8b6a22-de81-4690-be22-6ea882911416" message="#['In Aggregator=== size is ' ++ sizeOf(payload)]"/>
+						<db:bulk-insert doc:name="Bulk insert" doc:id="79ce3df3-acb7-46de-a455-ba84bafb75c6" config-ref="Database_Config">
+							<reconnect />
+							<db:bulk-input-parameters ><![CDATA[#[vars.records  map (record,indexOfRecord) ->{
+	mycity: record.variables.city as String,
+	myname: record.variables.name as String
+
+}]]]></db:bulk-input-parameters>
+							<db:sql ><![CDATA[insert into sales(Name,City) values(:myname, :mycity )]]></db:sql>
+						</db:bulk-insert>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="02518678-f556-47e5-8c45-823a4f491ec2" message="#[payload.processedRecords]"/>
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>

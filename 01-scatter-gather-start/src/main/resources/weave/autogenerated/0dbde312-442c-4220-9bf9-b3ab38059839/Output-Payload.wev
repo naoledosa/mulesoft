@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_0dbde312_442c_4220_9bf9_b3ab38059839_Output_Payload = {|
+  product_id: Any, 
+  brand_name: Any, 
+  description: Any, 
+  name: Any, 
+  offer_price: Any, 
+  offer_valid_until: Any, 
+  original_price: Any
+|}
+

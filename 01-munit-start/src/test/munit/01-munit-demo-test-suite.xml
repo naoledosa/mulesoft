@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="01-munit-demo-test-suite.xml" />
+	<munit:test name="01-munit-demo-test-suite-01-munit-demoFlowTest" doc:id="2e2c3cb8-c56e-4130-b1f4-ad8f9dc08b34" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to 01-munit-demoFlow" doc:id="2c4f62b1-973b-4187-91db-c37c83ec8427" name="01-munit-demoFlow"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="0545b6ff-ffda-4442-adeb-f8f797582986" message="Payload is not as expected " expression="#[payload]" is="#[MunitTools::equalTo('response_payload_1')]"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="01-munit-demoFlow1" doc:id="d484f22b-f0cd-48c5-91a6-4d7c344e668f" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to 01-munit-demoFlow" doc:id="5b5de489-8647-4996-873f-ca698193d369" name="01-munit-demoFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="162e392d-7c87-462f-98d9-f1eb0028a86d" processor="flow-ref" times="1">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="subflow1" attributeName="name" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+	<munit:before-test name="01-munit-demo-test-suiteBefore_Test" doc:id="cd8a890a-d6d4-46a6-ad9c-2d6b4d0dd513" >
+		<munit:set-event doc:name="Set Event" doc:id="8b9ddee8-f53b-447d-ac24-b344811e0617" >
+			<munit:attributes value="#[{'queryParams':{'url_key':'payload_1'}}]" />
+		</munit:set-event>
+	</munit:before-test>
+	<munit:test name="01-munit-demo-test-suite-01-munit-demoFlowTest1" doc:id="a9e39835-216f-4380-94aa-c1b1ffbb36bc" description="Test">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to 01-munit-demoFlow" doc:id="09a41a42-ffad-4375-af1a-f8ebec1e25b7" name="01-munit-demoFlow"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="c2971950-e9f2-4078-b8b1-c1596734e37e" message="Payload is not as expected" expression="#[payload]" is="#[MunitTools::equalTo('response_payload_1')]"/>
+		</munit:execution>
+	</munit:test>
+	<munit:test name="01-munit-demo-test-suite-01-munit-demoFlowTest2" doc:id="d6d6fce9-597e-4f6b-8053-c8101d61b667" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="c3068493-ff49-4557-9294-903ec687dcef" processor="flow-ref">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="choiceflow" attributeName="name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="myvariable" value="#['myvariable1']" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to 01-munit-demoFlow" doc:id="a51b3d66-a291-4c7a-8014-3653fd9bcbf0" name="01-munit-demoFlow"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="51bc5a83-7179-4757-b6d1-8c4569b3e702" is="#[MunitTools::equalTo('response_payload_1')]" message="Payload is not as expected" expression="#[payload]"/>
+		</munit:execution>
+	</munit:test>
+
+
+</mule>

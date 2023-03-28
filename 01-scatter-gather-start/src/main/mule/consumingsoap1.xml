@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="639ec60b-8aa6-43d1-9a2f-aa5c616e822a" >
+		<wsc:connection wsdlLocation="products.wsdl" service="ProductServicePortService" port="ProductServicePortSoap11" address="http://localhost:6060/ws" >
+			<wsc:web-service-security actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="61672862-8fdd-401a-bbce-da86b4f80517" basePath="/soap">
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="flow" doc:id="f6e6237b-02f4-4d61-8b9a-607e75b0c770" >
+		<http:listener doc:name="Listener" doc:id="77f030fb-6114-481c-a66a-102c8f20e9a3" config-ref="HTTP_Listener_config" path="/products"/>
+		<flow-ref doc:name="Flow Reference" doc:id="b49ac16c-2cb7-46a8-a47c-b6fb5e1acb0e" name="rest-getallproducts"/>
+	</flow>
+	<flow name="soap-getallproducts" doc:id="dd32d8b2-963d-4be0-a18d-e2cdd554e241" >
+		<wsc:consume operation="getAllProducts" doc:name="Consume" doc:id="b0e6c70e-9240-4b8b-8ed1-35d53fba2a0b" config-ref="Web_Service_Consumer_Config"/>
+	</flow>
+</mule>

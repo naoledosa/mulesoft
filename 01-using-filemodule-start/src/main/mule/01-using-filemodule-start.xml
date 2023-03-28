@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="1fd1187b-51a7-4358-93c0-f9d99156d0fe" >
+		<file:connection workingDir="C:\Users\naole\Desktop\MuleSoft\Exercises\files" />
+	</file:config>
+	<flow name="01-using-filemodule-startFlow" doc:id="58be99d3-dfbd-436e-8a62-64d3d3919067" >
+		<file:listener doc:name="On New or Updated File" doc:id="ee46de5f-4339-41c5-a49a-78065adc742f" config-ref="File_Config" directory="input" watermarkMode="MODIFIED_TIMESTAMP">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</file:listener>
+		<ee:transform doc:name="Transform Message" doc:id="35af31be-9207-474d-93c2-ddd05a597806" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="323f7c96-54b6-46f0-9d0a-425f0e3ab0e9" message="#[payload]"/>
+	</flow>
+</mule>

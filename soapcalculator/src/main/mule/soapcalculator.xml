@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="fc4f090f-de2c-4fdb-a5dd-7f52e0b189f4" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config" doc:name="Web Service Consumer Config" doc:id="bf185dff-3f3c-4c67-8cb9-accf767bfcac" >
+		<wsc:connection wsdlLocation="http://www.dneonline.com/calculator.asmx?wsdl" service="Calculator" port="CalculatorSoap" address="http://www.dneonline.com/calculator.asmx" >
+			<wsc:web-service-security actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	<flow name="soapcalculatorFlow" doc:id="71de5212-5217-4771-ba41-0aac696cc204" >
+		<http:listener doc:name="Listener" doc:id="2aac81f0-75fd-4693-ac2c-c239390bfeb7" config-ref="HTTP_Listener_config" path="/{action}"/>
+		<set-variable value="#[attributes.uriParams.action]" doc:name="Set Variable" doc:id="823de593-438b-49fe-91c6-613160d9e1b1" variableName="action"/>
+		<choice doc:name="Choice" doc:id="883dcf9a-bb45-4af7-af2a-cc84664cc8f5" >
+			<when expression="#[vars.action == 'Add']">
+				<ee:transform doc:name="Transform Message" doc:id="ad068afb-de2a-40f0-907e-ab1cc708a609" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Add: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume operation="Add" doc:name="Consume" doc:id="de32c69a-d580-4e07-9a7f-fd03575a0a4a" config-ref="Web_Service_Consumer_Config"/>
+			</when>
+			<when expression="#[vars.action == 'Divide']">
+				<ee:transform doc:name="Transform Message" doc:id="2d26c814-6579-4eba-86cf-8d55ade08d34" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Divide: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume doc:name="Consume" doc:id="1d08d55f-4b32-4db4-ac6e-53793f418ef1" config-ref="Web_Service_Consumer_Config" operation="Divide"/>
+			</when>
+			<when expression="#[vars.action == 'Multiply']">
+				<ee:transform doc:name="Transform Message" doc:id="1393377f-288f-4bd1-bc8b-5eaeb3266c81" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Multiply: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume doc:name="Consume" doc:id="753a5b44-4c60-441b-9c49-4c581d5cf211" config-ref="Web_Service_Consumer_Config" operation="Multiply"/>
+			</when>
+			<when expression="#[vars.action == 'Subtract']">
+				<ee:transform doc:name="Transform Message" doc:id="6bc352b4-966e-4ff5-8943-7a93a64a2360" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Subtract: {
+		ns0#intA: payload.value1,
+		ns0#intB: payload.value2
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume operation="Subtract" doc:name="Consume" doc:id="3e9b0912-8436-4fd6-869b-b0dae4a79faf" config-ref="Web_Service_Consumer_Config"/>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="9c72e340-6678-477d-a698-38ce64dfccc7" type="CUSTOM:INVALID_OPERATION" description="OPERATION NOT SUPPORTED CURRENTLY"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="a9928188-bad5-4824-8b90-1b863fd20538" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	result: payload.body
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
