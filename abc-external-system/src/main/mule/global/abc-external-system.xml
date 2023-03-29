@@ -1,12 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="abc-external-systemFlow" doc:id="aa3cd1b1-c4c2-4961-8f7e-91c12b21846d" >
-		<http:listener doc:name="Listener" doc:id="a3f947b2-4604-470f-b2bb-7e96ac7f7cc0" config-ref="HTTP_Listener_config" path="${http.listener.path}"/>
-		<logger level="INFO" doc:name="Logger" doc:id="64c2015e-6202-44af-a451-28459ff49b49" message="#[payload]"/>
+		<http:listener doc:name="Listener" doc:id="a3f947b2-4604-470f-b2bb-7e96ac7f7cc0" config-ref="HTTP_Listener_config" path="${http.listener.path}">
+			<http:error-response statusCode="#[vars.statusCode as Number]" >
+				<http:body ><![CDATA[#[vars.errorMessage default "Critical Error"]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="64c2015e-6202-44af-a451-28459ff49b49" message="Recieved request for ABC External System"/>
+		<ee:transform doc:name="Transform Message" doc:id="4a976a89-58d6-41b5-b969-7ef50686fc34" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="serviceType" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.serviceType]]></ee:set-variable>
+				<ee:set-variable variableName="transcationId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.transactionId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="d0749e62-5a72-4929-90bc-9234b2d1d29a" >
+			<when expression='#[vars.serviceType == "routes"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="14f67c3a-41c7-4ea7-ac1e-520f72b1ec51" message="routes recieved for  ABC External System #[vars.transcationId]"/>
+				<flow-ref doc:name="Flow Reference" doc:id="eb110616-6ad2-42e6-8877-28f8a13f8695" name="get-routes-implFlow"/>
+			</when>
+			<when expression='#[vars.serviceType == "schedules"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="1a544a70-06f1-4a46-9ad8-9b0bf3045dc9" message="schedules recieved for  ABC External System #[vars.transcationId]"/>
+				<flow-ref doc:name="Flow Reference" doc:id="c7f3b3da-dee2-4763-ac74-88b4024e509c" name="get-schedules-implFlow"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="3db21b76-1a50-4d3d-8ab7-863ce61964dc" message="Uri Param not correct for  ABC External System"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="00a76be9-9c35-4b38-9136-6bd0633ae35f" message="#[vars.transcationId]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="69dab133-b318-40fe-ae4d-a5c48de5cf27" >
+				<logger level="INFO" doc:name="Logger" doc:id="dc6e6126-f7a5-4891-b5e4-631609a974e3" message="Error Recieved for ABC External System" />
+				<ee:transform doc:name="Transform Message" doc:id="58d9127c-8dd5-4dce-9350-2721002d0422" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="errorStatus" ><![CDATA[%dw 2.0
+output application/json
+---
+500]]></ee:set-variable>
+						<ee:set-variable variableName="errorMessage" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	statusCode: "500",
+	errorMessage: "Server Error for ABC Systems"
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
 	</flow>
 </mule>

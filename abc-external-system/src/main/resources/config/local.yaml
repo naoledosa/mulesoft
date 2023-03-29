@@ -2,4 +2,12 @@ http:
   listener:
     host: "localhost"
     port: "9080"
-    path: "/routes"
+    path: "/api/{serviceType}"
+    
+db:
+  mysql:
+    host: "localhost"
+    port: "3307"
+    user: "root"
+    password: "root"
+    database: "external_sysetms"
