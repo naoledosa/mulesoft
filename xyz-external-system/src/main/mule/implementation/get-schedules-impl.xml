@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="get-schedules-implFlow" doc:id="2860a5a5-7f74-46e4-8db9-2a426d3e86b2" >
+		<db:select doc:name="Select schedules from XYZ systems" doc:id="5841a79e-0188-4be5-be7e-89d845593ab9" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from schedules where companyName = 'XYZ']]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message for XYZ systems" doc:id="cec5d2ac-5819-4a06-ad6a-4cfdb486ba5c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

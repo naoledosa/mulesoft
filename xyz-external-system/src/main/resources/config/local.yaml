@@ -1,0 +1,13 @@
+http:
+  listener:
+    host: "localhost"
+    port: "9080"
+    path: "/xyz/{serviceType}"
+    
+db:
+  mysql:
+    host: "localhost"
+    port: "3307"
+    user: "root"
+    password: "root"
+    database: "external_sysetms"

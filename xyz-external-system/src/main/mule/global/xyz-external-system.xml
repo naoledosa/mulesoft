@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="xyz-external-systemFlow" doc:id="2fedeb64-9cd2-453d-b747-3bd29589a2d3" >
+		<http:listener doc:name="Listener" doc:id="f9ea0d3b-ddda-4079-bf9d-0677b06f81d4" config-ref="HTTP_Listener_config" path="${http.listener.path}">
+			<http:error-response statusCode="#[vars.statusCode as Number]" >
+				<http:body ><![CDATA[#[vars.errorMsg]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="0f6c18f8-423a-4bbd-b309-acd6c71b40bf" />
+		<ee:transform doc:name="Transform Message" doc:id="49a33a21-6102-471b-a7ac-faef64cf1f42" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="serviceType" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.serviceType]]></ee:set-variable>
+				<ee:set-variable variableName="transactionId" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.transactionId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="feb93366-f7d7-4c5c-a354-702855ed15b7" >
+			<when expression='#[vars.serviceType == "routes"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="c483f377-f26d-4987-b469-4f33fb11f993" message="routes recieved for  XYZ External System #[vars.transcationId]"/>
+				<flow-ref doc:name="Flow Reference" doc:id="9a650d08-6c81-47b1-a83a-de04874f56b4" name="get-routes-implFlow"/>
+			</when>
+			<when expression='#[vars.serviceType == "schedules"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="84d40f23-1c62-4bd8-93c5-0ade66d3e68c" message="schedules recieved for  XYZ External System #[vars.transcationId]"/>
+				<flow-ref doc:name="Flow Reference" doc:id="72f6ccd1-a450-4f72-8e92-7a54235c946d" name="get-schedules-implFlow"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="ee6611e2-02c7-4dc0-824f-8bd51bdbea90" message="Uri Param not defined for XYZ systems"/>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="feb60c17-4fdb-4e39-815d-e0547a113278" message="#[vars.transactionId]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ea314184-528f-4817-b49e-5f3f410eef4c" >
+				<logger level="INFO" doc:name="Logger" doc:id="d72d9489-e8d7-4274-b6c9-2b9e8d123e20" message="Error occured for XYZ systems"/>
+				<ee:transform doc:name="Transform Message" doc:id="2c5ae9cc-7f9a-4623-823f-413aa9629779" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="errorMsg" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode": "XYZ-500",
+	"errorMessage": "Error in XYZ Systems"
+}]]></ee:set-variable>
+						<ee:set-variable variableName="statusCode" ><![CDATA[%dw 2.0
+output application/java
+---
+500]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
