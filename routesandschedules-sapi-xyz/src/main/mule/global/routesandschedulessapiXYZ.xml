@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="routesandschedulessapiABC-main">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.transactionId]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="routesandschedulessapiABC-config"/>
+		<error-handler ref="globalErrorHandlerError_Handler" />
+    </flow>
+	<sub-flow name="routesandschedulessapi_ABC_request_Sub_Flow" doc:id="007dab79-e5b0-4cc8-b29b-833dd2493896" >
+		<ee:transform doc:name="Transform Message" doc:id="ca298eb3-5c46-4067-a0ff-32c244418bd8">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="transactionId"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.transactionId]]></ee:set-variable>
+				<ee:set-variable variableName="transportType"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.transportType]]></ee:set-variable>
+				<ee:set-variable variableName="transportCompany"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.uriParams.company]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<flow name="get:\(transportType)\(company)\routes:routesandschedulessapiABC-config">
+		<flow-ref doc:name="Flow Reference" doc:id="f2b60b63-8c6a-4e4b-a740-6741fa2990cd" name="routesandschedulessapi_ABC_request_Sub_Flow" />
+		<logger level="INFO" doc:name="Logger" doc:id="10a97d77-18ce-4c59-81fd-986ca3bc112e" message="Request recieved for routes ABC #[vars.transactionId]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="bd0bbf6d-4a0b-490d-9ca2-de6aabc759cb" name="abc-routes-impl-sub-flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="443261a2-7bdc-4fe2-8b15-b51257b1095a" message="Response sent for routes ABC #[vars.transactionId]"/>
+    </flow>
+    <flow name="get:\(transportType)\(company)\schedules:routesandschedulessapiABC-config">
+		<flow-ref doc:name="Flow Reference" doc:id="20e46156-a31f-4d84-8909-01b1e6b03145" name="routesandschedulessapi_ABC_request_Sub_Flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="976a7862-4aee-47e9-8837-f4382f0b9d0e" message="Request recieved for schedules ABC #[vars.transactionId]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="417722b8-b584-4488-9221-9bf5f06ec593" name="abc-schedules-impl-sub-flow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="29b2c8fe-1a6f-4c13-a42f-86f7dbe8f657" message="Response sent for schedules ABC #[vars.transactionId]"/>
+    </flow>
+</mule>

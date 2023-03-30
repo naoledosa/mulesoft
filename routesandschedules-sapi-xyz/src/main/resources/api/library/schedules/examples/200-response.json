@@ -1,0 +1,14 @@
+[
+   {
+      "seats":30,
+      "departure":"2023-03-22-GMT-3",
+      "routes":{
+         "destination":{
+            "locationCode":"ET"
+         },
+         "source":{
+            "locationCode":"BA"
+         }
+      }
+   }
+]

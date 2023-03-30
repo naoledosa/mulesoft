@@ -1,0 +1,36 @@
+[
+  {
+    "destination": {
+      "locationCode": "quia",
+      "": {
+        
+      }
+    },
+    "source": {
+      "locationCode": "Duis",
+      "": {
+        
+      }
+    },
+    "": {
+      
+    }
+  },
+  {
+    "destination": {
+      "locationCode": "eum",
+      "": {
+        
+      }
+    },
+    "source": {
+      "locationCode": "magni",
+      "": {
+        
+      }
+    },
+    "": {
+      
+    }
+  }
+]

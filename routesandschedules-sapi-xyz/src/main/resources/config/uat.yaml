@@ -1,0 +1,10 @@
+http:
+  listener:
+    host: "localhost"
+    port: "8050"
+  requester:
+    host: "localhost"
+    port: "8000"
+    routesPath: "/xyz/routes"
+    schedulesPath: "/xyz/schedules"
+    
