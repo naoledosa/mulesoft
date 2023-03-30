@@ -1,0 +1,74 @@
+#%RAML 1.0
+title: Routes And Schedules SAPI ABC Company
+mediaType: application/json
+version: 1.0.0
+protocols: HTTP
+
+uses:
+  common: /library/common/common-library.raml
+
+types:
+  routeDataType: !include /library/routes/dataTypes/routes-dataType.raml
+  scheduleDataType: !include /library/schedules/dataTypes/schedules-dataType.raml
+  400-Datatype: !include /library/common/dataTypes/400-dataType.raml
+  404-Datatype: !include /library/common/dataTypes/404-dataType.raml
+  500-Datatype: !include /library/common/dataTypes/500-dataType.raml
+
+
+/{transportType}:
+  /{company}:
+    /routes:
+      get:
+        is:
+          - common.transactionId
+        responses:
+          200:
+            body:
+              application/json:
+                type: routeDataType
+                example: !include /library/routes/examples/200-response.json     
+          400:
+            body:
+              application/json:
+                type: 400-Datatype
+                example: !include /library/common/examples/400-response.json
+          404:
+            body:
+              application/json:
+                type: 404-Datatype
+                example: !include /library/common/examples/404-response.json
+          500:
+            body:
+              application/json:
+                type: 500-Datatype
+                example: !include /library/common/examples/500-response.json
+    /schedules:
+      get:
+        is:
+          - common.transactionId
+          - common.sourceCode
+          - common.destinationCode
+        responses:
+          200:
+            body:
+              application/json:
+                type: scheduleDataType
+                example: !include /library/schedules/examples/200-response.json  
+          400:
+            body:
+              application/json:
+                type: 400-Datatype
+                example: !include /library/common/examples/400-response.json
+          404:
+            body:
+              application/json:
+                type: 404-Datatype
+                example: !include /library/common/examples/404-response.json
+          500:
+            body:
+              application/json:
+                type: 500-Datatype
+                example: !include /library/common/examples/500-response.json
+          
+                        
+

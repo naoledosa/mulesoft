@@ -1,0 +1,10 @@
+http:
+  listener:
+    host: "localhost"
+    port: "9050"
+  requester:
+    host: "localhost"
+    port: "9000"
+    routesPath: "/abc/routes"
+    schedulesPath: "/abc/schedules"
+    
